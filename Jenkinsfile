@@ -2,72 +2,27 @@ pipeline {
     agent any
 
     environment {
-        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
     }
 
-    options {
-        timestamps() // Adds timestamps to logs
-    }
-
     stages {
-        stage('Checkout Code') {
+        stage('Terraform Init') {
             steps {
-                script {
-                    echo "Cloning repository..."
-                    git branch: 'main', 
-                        url: 'https://github.com/Keerthana-Bindhurani/Terraform-project.git', 
-                        credentialsId: 'github-credentials-id'  // 🔹 Replace with your actual credentials ID
-                }
+                powershell '"C:\\Users\\keert\\Downloads\\terraform_1.10.5_windows_amd64 (1)\\terraform.exe" init'
             }
         }
 
-        stage('Initialize Terraform') {
+        stage('Plan') {
             steps {
-                sh '''
-                    echo "Initializing Terraform..."
-                    terraform init
-                '''
+                powershell '"C:\\Users\\keert\\Downloads\\terraform_1.10.5_windows_amd64 (1)\\terraform.exe" plan'
             }
         }
 
-        stage('Validate Terraform') {
+        stage('Apply') {
             steps {
-                sh '''
-                    echo "Validating Terraform configuration..."
-                    terraform validate
-                '''
+                powershell '"C:\\Users\\keert\\Downloads\\terraform_1.10.5_windows_amd64 (1)\\terraform.exe" apply -auto-approve'
             }
         }
-
-        stage('Plan Terraform') {
-            steps {
-                sh '''
-                    echo "Generating Terraform plan..."
-                    terraform plan -out=tfplan -input=false
-                '''
-            }
-        }
-
-        stage('Apply Terraform') {
-            steps {
-                sh '''
-                    echo "Applying Terraform changes..."
-                    terraform apply -auto-approve -input=false
-                '''
-            }
-        }
-    }
-
-    post {
-        always {
-            echo "⚡ Terraform pipeline execution completed."
-        }
-        success {
-            echo "✅ Terraform applied successfully!"
-        }
-        failure {
-            echo "❌ Terraform pipeline failed! Check logs."
-        }
-    }
+    }  
 }

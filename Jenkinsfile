@@ -7,7 +7,7 @@ pipeline {
     }
 
     options {
-        timestamps() // Adds timestamps for better logging
+        timestamps() // Adds timestamps to logs
     }
 
     stages {
@@ -18,27 +18,6 @@ pipeline {
                     git branch: 'main', 
                         url: 'https://github.com/Keerthana-Bindhurani/Terraform-project.git', 
                         credentialsId: 'github-credentials-id'  // 🔹 Replace with your actual credentials ID
-                }
-            }
-        }
-
-        stage('Install Terraform') {
-            steps {
-                script {
-                    echo "Checking if Terraform is installed..."
-                    def terraformInstalled = sh(script: 'command -v terraform', returnStatus: true) == 0
-                    if (!terraformInstalled) {
-                        echo "Terraform not found. Installing..."
-                        sh '''
-                            sudo apt-get update
-                            sudo apt-get install -y software-properties-common
-                            sudo apt-add-repository --yes --update ppa:terraform-latest/ppa
-                            sudo apt-get install -y terraform
-                        '''
-                    } else {
-                        echo "Terraform is already installed."
-                    }
-                    sh 'terraform --version'
                 }
             }
         }

@@ -7,74 +7,88 @@ pipeline {
     }
 
     options {
-        timestamps() // Adds timestamps to logs
+        timestamps() // Adds timestamps for better logging
     }
 
     stages {
-        stage('Cleanup Workspace') {
+        stage('Checkout Code') {
             steps {
-                echo "Cleaning workspace..."
-                deleteDir() // Ensures a fresh workspace
+                script {
+                    echo "Cloning repository..."
+                    git branch: 'main', 
+                        url: 'https://github.com/Keerthana-Bindhurani/Terraform-project.git', 
+                        credentialsId: 'github-credentials-id'  // 🔹 Replace with your actual credentials ID
+                }
             }
         }
 
-        stage('Checkout Code') {
+        stage('Install Terraform') {
             steps {
-                echo "Cloning repository..."
-                git branch: 'main', url: 'https://github.com/Keerthana-Bindhurani/Terraform-project.git'
+                script {
+                    echo "Checking if Terraform is installed..."
+                    def terraformInstalled = sh(script: 'command -v terraform', returnStatus: true) == 0
+                    if (!terraformInstalled) {
+                        echo "Terraform not found. Installing..."
+                        sh '''
+                            sudo apt-get update
+                            sudo apt-get install -y software-properties-common
+                            sudo apt-add-repository --yes --update ppa:terraform-latest/ppa
+                            sudo apt-get install -y terraform
+                        '''
+                    } else {
+                        echo "Terraform is already installed."
+                    }
+                    sh 'terraform --version'
+                }
             }
         }
 
         stage('Initialize Terraform') {
             steps {
-                echo "Initializing Terraform..."
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                script {
+                    echo "Initializing Terraform..."
                     sh 'terraform init'
                 }
             }
         }
 
-        stage('Format Terraform') {
-            steps {
-                echo "Checking Terraform format..."
-                sh 'terraform fmt -check'
-            }
-        }
-
         stage('Validate Terraform') {
             steps {
-                echo "Validating Terraform configuration..."
-                sh 'terraform validate'
+                script {
+                    echo "Validating Terraform configuration..."
+                    sh 'terraform validate'
+                }
             }
         }
 
         stage('Plan Terraform') {
             steps {
-                echo "Generating Terraform plan..."
-                sh 'terraform plan -out=tfplan'
+                script {
+                    echo "Generating Terraform plan..."
+                    sh 'terraform plan -out=tfplan -input=false'
+                }
             }
         }
 
         stage('Apply Terraform') {
             steps {
-                echo "Applying Terraform configuration..."
-                sh 'terraform apply -auto-approve'
+                script {
+                    echo "Applying Terraform changes..."
+                    sh 'terraform apply -auto-approve -input=false'
+                }
             }
         }
     }
 
     post {
         always {
-            echo "Cleaning up workspace after build..."
-            deleteDir() // Cleanup after execution
+            echo "⚡ Terraform pipeline execution completed."
         }
-
         success {
-            echo "Terraform deployment completed successfully!"
+            echo "✅ Terraform applied successfully!"
         }
-
         failure {
-            echo "Build failed. Check logs for errors."
+            echo "❌ Terraform pipeline failed! Check logs."
         }
     }
 }

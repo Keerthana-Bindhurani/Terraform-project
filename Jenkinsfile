@@ -24,37 +24,37 @@ pipeline {
 
         stage('Initialize Terraform') {
             steps {
-                script {
+                powershell '''
                     echo "Initializing Terraform..."
-                    sh 'terraform init'
-                }
+                    terraform init
+                '''
             }
         }
 
         stage('Validate Terraform') {
             steps {
-                script {
+                powershell '''
                     echo "Validating Terraform configuration..."
-                    sh 'terraform validate'
-                }
+                    terraform validate
+                '''
             }
         }
 
         stage('Plan Terraform') {
             steps {
-                script {
+                powershell '''
                     echo "Generating Terraform plan..."
-                    sh 'terraform plan -out=tfplan -input=false'
-                }
+                    terraform plan -out=tfplan -input=false
+                '''
             }
         }
 
         stage('Apply Terraform') {
             steps {
-                script {
+                powershell '''
                     echo "Applying Terraform changes..."
-                    sh 'terraform apply -auto-approve -input=false'
-                }
+                    terraform apply -auto-approve -input=false
+                '''
             }
         }
     }

@@ -24,7 +24,7 @@ pipeline {
 
         stage('Initialize Terraform') {
             steps {
-                powershell '''
+                sh '''
                     echo "Initializing Terraform..."
                     terraform init
                 '''
@@ -33,7 +33,7 @@ pipeline {
 
         stage('Validate Terraform') {
             steps {
-                powershell '''
+                sh '''
                     echo "Validating Terraform configuration..."
                     terraform validate
                 '''
@@ -42,7 +42,7 @@ pipeline {
 
         stage('Plan Terraform') {
             steps {
-                powershell '''
+                sh '''
                     echo "Generating Terraform plan..."
                     terraform plan -out=tfplan -input=false
                 '''
@@ -51,7 +51,7 @@ pipeline {
 
         stage('Apply Terraform') {
             steps {
-                powershell '''
+                sh '''
                     echo "Applying Terraform changes..."
                     terraform apply -auto-approve -input=false
                 '''

@@ -18,7 +18,8 @@ pipeline {
         stage('Initialize Terraform') {
             steps {
                 script {
-                    bat 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -ExecutionPolicy Bypass -File init.ps1'
+                    // ✅ Use full path to cmd.exe
+                    bat '"C:\\Windows\\System32\\cmd.exe" /c powershell.exe -ExecutionPolicy Bypass -File init.ps1'
                 }
             }
         }

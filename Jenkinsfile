@@ -19,9 +19,21 @@ pipeline {
         stage('Initialize Terraform') {
             steps {
                 script {
-                    bat "\"${env.TERRAFORM_PATH}\" init"
+                    bat """
+                        cd ${env.TF_WORKING_DIR}
+                        \"${env.TERRAFORM_PATH}\" init
+                    """
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline execution completed successfully!'
+        }
+        failure {
+            echo 'Pipeline execution failed. Check logs for errors.'
         }
     }
 }

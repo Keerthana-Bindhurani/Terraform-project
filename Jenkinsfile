@@ -15,10 +15,14 @@ pipeline {
                 ]) {
                     powershell '''
                         Set-ExecutionPolicy Bypass -Scope Process -Force
+                        Write-Host "Initializing Terraform..."
                         [System.Environment]::SetEnvironmentVariable("AWS_ACCESS_KEY_ID", "$env:AWS_ACCESS_KEY_ID", "Process")
                         [System.Environment]::SetEnvironmentVariable("AWS_SECRET_ACCESS_KEY", "$env:AWS_SECRET_ACCESS_KEY", "Process")
-                        & "$env:TERRAFORM_PATH" init
-                        if ($LASTEXITCODE -ne 0) { exit 1 }
+                        & "$env:TERRAFORM_PATH" init | Tee-Object -FilePath terraform-init.log
+                        if ($LASTEXITCODE -ne 0) { 
+                            Write-Host "Terraform Init Failed. Check terraform-init.log for details."
+                            exit 1 
+                        }
                     '''
                 }
             }
@@ -31,10 +35,14 @@ pipeline {
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
                     powershell '''
+                        Write-Host "Running Terraform Plan..."
                         [System.Environment]::SetEnvironmentVariable("AWS_ACCESS_KEY_ID", "$env:AWS_ACCESS_KEY_ID", "Process")
                         [System.Environment]::SetEnvironmentVariable("AWS_SECRET_ACCESS_KEY", "$env:AWS_SECRET_ACCESS_KEY", "Process")
-                        & "$env:TERRAFORM_PATH" plan
-                        if ($LASTEXITCODE -ne 0) { exit 1 }
+                        & "$env:TERRAFORM_PATH" plan | Tee-Object -FilePath terraform-plan.log
+                        if ($LASTEXITCODE -ne 0) { 
+                            Write-Host "Terraform Plan Failed. Check terraform-plan.log for details."
+                            exit 1 
+                        }
                     '''
                 }
             }
@@ -47,13 +55,17 @@ pipeline {
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
                     powershell '''
+                        Write-Host "Applying Terraform Changes..."
                         [System.Environment]::SetEnvironmentVariable("AWS_ACCESS_KEY_ID", "$env:AWS_ACCESS_KEY_ID", "Process")
                         [System.Environment]::SetEnvironmentVariable("AWS_SECRET_ACCESS_KEY", "$env:AWS_SECRET_ACCESS_KEY", "Process")
-                        & "$env:TERRAFORM_PATH" apply -auto-approve
-                        if ($LASTEXITCODE -ne 0) { exit 1 }
+                        & "$env:TERRAFORM_PATH" apply -auto-approve | Tee-Object -FilePath terraform-apply.log
+                        if ($LASTEXITCODE -ne 0) { 
+                            Write-Host "Terraform Apply Failed. Check terraform-apply.log for details."
+                            exit 1 
+                        }
                     '''
                 }
             }
         }
-    }  
+    }
 }

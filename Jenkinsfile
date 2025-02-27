@@ -21,8 +21,8 @@ pipeline {
                 ]) {
                     powershell '''
                         Set-ExecutionPolicy Bypass -Scope Process -Force
-                        $env:AWS_ACCESS_KEY_ID = "$env:AWS_ACCESS_KEY_ID"
-                        $env:AWS_SECRET_ACCESS_KEY = "$env:AWS_SECRET_ACCESS_KEY"
+                        [System.Environment]::SetEnvironmentVariable("AWS_ACCESS_KEY_ID", "$env:AWS_ACCESS_KEY_ID", "Process")
+                        [System.Environment]::SetEnvironmentVariable("AWS_SECRET_ACCESS_KEY", "$env:AWS_SECRET_ACCESS_KEY", "Process")
                         & "$env:TERRAFORM_PATH" init -reconfigure
                         if ($LASTEXITCODE -ne 0) { exit 1 }
                     '''
@@ -49,8 +49,8 @@ pipeline {
                 ]) {
                     catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                         powershell '''
-                            $env:AWS_ACCESS_KEY_ID = "$env:AWS_ACCESS_KEY_ID"
-                            $env:AWS_SECRET_ACCESS_KEY = "$env:AWS_SECRET_ACCESS_KEY"
+                            [System.Environment]::SetEnvironmentVariable("AWS_ACCESS_KEY_ID", "$env:AWS_ACCESS_KEY_ID", "Process")
+                            [System.Environment]::SetEnvironmentVariable("AWS_SECRET_ACCESS_KEY", "$env:AWS_SECRET_ACCESS_KEY", "Process")
                             & "$env:TERRAFORM_PATH" plan -out=tfplan
                             if ($LASTEXITCODE -ne 0) { exit 1 }
                         '''
@@ -67,9 +67,9 @@ pipeline {
                 ]) {
                     catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                         powershell '''
-                            $env:AWS_ACCESS_KEY_ID = "$env:AWS_ACCESS_KEY_ID"
-                            $env:AWS_SECRET_ACCESS_KEY = "$env:AWS_SECRET_ACCESS_KEY"
-                            & "$env:TERRAFORM_PATH" apply -auto-approve tfplan
+                            [System.Environment]::SetEnvironmentVariable("AWS_ACCESS_KEY_ID", "$env:AWS_ACCESS_KEY_ID", "Process")
+                            [System.Environment]::SetEnvironmentVariable("AWS_SECRET_ACCESS_KEY", "$env:AWS_SECRET_ACCESS_KEY", "Process")
+                            & "$env:TERRAFORM_PATH" apply -auto-approve
                             if ($LASTEXITCODE -ne 0) { exit 1 }
                         '''
                     }

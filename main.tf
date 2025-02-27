@@ -1,37 +1,12 @@
 provider "aws" {
-  region = "us-east-1"  # Change as needed
+  region = "us-east-1"  # Change to your preferred region
 }
 
-resource "aws_security_group" "allow_ssh" {
-  name        = "allow_ssh"
-  description = "Allow SSH inbound traffic"
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Allows SSH from any IP (use specific IP for security)
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-resource "aws_instance" "web" {
-  ami             = "ami-05b10e08d247fb927"  # Amazon Linux AMI (update if needed)
-  instance_type   = "t2.micro"
-  key_name        = "aws"  # Your key pair name
-  security_groups = [aws_security_group.allow_ssh.name]
+resource "aws_instance" "app_server" {
+  ami           = "ami-05b10e08d247fb927"  # Amazon Linux 2 AMI (Replace if needed)
+  instance_type = "t2.micro"
 
   tags = {
-    Name = "Terraform-EC2"
+    Name = "AppServer"
   }
-}
-
-output "instance_ip" {
-  value = aws_instance.web.public_ip
 }

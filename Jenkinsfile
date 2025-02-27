@@ -19,36 +19,8 @@ pipeline {
         stage('Initialize Terraform') {
             steps {
                 script {
-                    bat "\"${TERRAFORM_PATH}\" init"
+                    bat "\"${env.TERRAFORM_PATH}\" init"
                 }
-            }
-        }
-
-        stage('Validate Terraform') {
-            steps {
-                powershell '''
-                cd $env:TF_WORKING_DIR
-                terraform validate
-                '''
-            }
-        }
-
-        stage('Plan Infrastructure') {
-            steps {
-                powershell '''
-                cd $env:TF_WORKING_DIR
-                terraform plan -out=tfplan
-                '''
-            }
-        }
-
-        stage('Apply Infrastructure') {
-            steps {
-                input message: 'Approve Terraform Apply?', ok: 'Apply'
-                powershell '''
-                cd $env:TF_WORKING_DIR
-                terraform apply -auto-approve
-                '''
             }
         }
     }

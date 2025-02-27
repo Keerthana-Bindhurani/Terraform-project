@@ -2,10 +2,8 @@ pipeline {
     agent any
 
     environment {
-        AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
-        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
-        AWS_DEFAULT_REGION    = 'ap-south-1'
-        TERRAFORM_PATH        = 'C:\\Terraform\\terraform_1.10.5\\terraform.exe'
+        AWS_DEFAULT_REGION = 'ap-south-1'
+        TERRAFORM_PATH     = 'C:\\Terraform\\terraform_1.10.5\\terraform.exe'
     }
 
     stages {
@@ -17,27 +15,49 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                powershell 'Set-ExecutionPolicy Bypass -Scope Process -Force'
-                powershell '& "$env:TERRAFORM_PATH" init; if ($LASTEXITCODE -ne 0) { exit 1 }'
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    powershell '''
+                        Set-ExecutionPolicy Bypass -Scope Process -Force
+                        & "$env:TERRAFORM_PATH" init
+                        if ($LASTEXITCODE -ne 0) { exit 1 }
+                    '''
+                }
             }
         }
 
         stage('Terraform Validate') {
             steps {
-                powershell '& "$env:TERRAFORM_PATH" validate; if ($LASTEXITCODE -ne 0) { exit 1 }'
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    powershell '''
+                        & "$env:TERRAFORM_PATH" validate
+                        if ($LASTEXITCODE -ne 0) { exit 1 }
+                    '''
+                }
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                powershell '& "$env:TERRAFORM_PATH" plan -out=tfplan; if ($LASTEXITCODE -ne 0) { exit 1 }'
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    powershell '''
+                        & "$env:TERRAFORM_PATH" plan -out=tfplan
+                        if ($LASTEXITCODE -ne 0) { exit 1 }
+                    '''
+                }
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                input message: 'Proceed with Terraform Apply?', ok: 'Yes'
-                powershell '& "$env:TERRAFORM_PATH" apply -auto-approve tfplan; if ($LASTEXITCODE -ne 0) { exit 1 }'
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    powershell '''
+                        & "$env:TERRAFORM_PATH" apply -auto-approve tfplan
+                        if ($LASTEXITCODE -ne 0) { exit 1 }
+                    '''
+                }
             }
         }
     }

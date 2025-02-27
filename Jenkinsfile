@@ -10,19 +10,19 @@ pipeline {
     stages {
         stage('Terraform Init') {
             steps {
-                powershell '"C:\\Users\\keert\\Downloads\\terraform_1.10.5_windows_amd64\\terraform.exe" init'
+                powershell 'terraform init'
             }
         }
 
         stage('Plan') {
             steps {
-                powershell '"C:\\Users\\keert\\Downloads\\terraform_1.10.5_windows_amd64\\terraform.exe" plan'
+                powershell 'terraform plan'
             }
         }
 
         stage('Apply') {
             steps {
-                powershell '"C:\\Users\\keert\\Downloads\\terraform_1.10.5_windows_amd64\\terraform.exe" apply -auto-approve'
+                powershell 'terraform apply -auto-approve'
             }
         }
     }

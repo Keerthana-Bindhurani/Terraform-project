@@ -18,25 +18,25 @@ pipeline {
         stage('Terraform Init') {
             steps {
                 powershell 'Set-ExecutionPolicy Bypass -Scope Process -Force'
-                powershell "\"${env.TERRAFORM_PATH}\" init || exit 1"
+                powershell '& "$env:TERRAFORM_PATH" init; if ($LASTEXITCODE -ne 0) { exit 1 }'
             }
         }
 
         stage('Terraform Validate') {
             steps {
-                powershell "\"${env.TERRAFORM_PATH}\" validate || exit 1"
+                powershell '& "$env:TERRAFORM_PATH" validate; if ($LASTEXITCODE -ne 0) { exit 1 }'
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                powershell "\"${env.TERRAFORM_PATH}\" plan -out=tfplan || exit 1"
+                powershell '& "$env:TERRAFORM_PATH" plan -out=tfplan; if ($LASTEXITCODE -ne 0) { exit 1 }'
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                powershell "\"${env.TERRAFORM_PATH}\" apply -auto-approve tfplan || exit 1"
+                powershell '& "$env:TERRAFORM_PATH" apply -auto-approve tfplan; if ($LASTEXITCODE -ne 0) { exit 1 }'
             }
         }
     }

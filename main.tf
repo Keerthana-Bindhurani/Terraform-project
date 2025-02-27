@@ -1,27 +1,37 @@
 provider "aws" {
-  region = "us-east-1"
+  region = "us-east-1"  # Change as needed
 }
 
-resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+resource "aws_security_group" "allow_ssh" {
+  name        = "allow_ssh"
+  description = "Allow SSH inbound traffic"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Allows SSH from any IP (use specific IP for security)
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
-resource "aws_subnet" "subnet1" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-east-1a"
+resource "aws_instance" "web" {
+  ami             = "ami-0c55b159cbfafe1f0"  # Amazon Linux AMI (update if needed)
+  instance_type   = "t2.micro"
+  key_name        = "terra"  # Your key pair name
+  security_groups = [aws_security_group.allow_ssh.name]
+
+  tags = {
+    Name = "Terraform-EC2"
+  }
 }
 
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.main.id
-}
-
-resource "aws_route_table" "rt" {
-  vpc_id = aws_vpc.main.id
-}
-
-resource "aws_route" "default_route" {
-  route_table_id         = aws_route_table.rt.id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.igw.id
+output "instance_ip" {
+  value = aws_instance.web.public_ip
 }

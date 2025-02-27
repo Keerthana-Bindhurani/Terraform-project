@@ -22,7 +22,7 @@ resource "aws_security_group" "allow_ssh" {
 }
 
 resource "aws_instance" "web" {
-  ami             = "ami-0df8c184d5f6ae949"  # Amazon Linux AMI (update if needed)
+  ami             = "ami-05b10e08d247fb927"  # Amazon Linux AMI (update if needed)
   instance_type   = "t2.micro"
   key_name        = "terra"  # Your key pair name
   security_groups = [aws_security_group.allow_ssh.name]

@@ -1,28 +1,51 @@
 pipeline {
     agent any
-
+    
     environment {
-        AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
-        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
-        AWS_DEFAULT_REGION    = 'ap-south-1'
+        TF_WORKING_DIR = "C:\\terraform_project" // Change this if needed
     }
 
     stages {
-        stage('Terraform Init') {
+        stage('Checkout Code') {
             steps {
-                powershell 'terraform init'
+                git branch: 'main', url: 'https://github.com/Keerthana-Bindhurani/Terraform-project.git'
+            }
+        }
+        
+        stage('Initialize Terraform') {
+            steps {
+                powershell '''
+                cd $env:TF_WORKING_DIR
+                terraform init
+                '''
             }
         }
 
-        stage('Plan') {
+        stage('Validate Terraform') {
             steps {
-                powershell 'terraform plan'
+                powershell '''
+                cd $env:TF_WORKING_DIR
+                terraform validate
+                '''
             }
         }
 
-        stage('Apply') {
+        stage('Plan Infrastructure') {
             steps {
-                powershell 'terraform apply -auto-approve'
+                powershell '''
+                cd $env:TF_WORKING_DIR
+                terraform plan -out=tfplan
+                '''
+            }
+        }
+
+        stage('Apply Infrastructure') {
+            steps {
+                input message: 'Approve Terraform Apply?', ok: 'Apply'
+                powershell '''
+                cd $env:TF_WORKING_DIR
+                terraform apply -auto-approve
+                '''
             }
         }
     }

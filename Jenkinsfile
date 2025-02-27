@@ -5,8 +5,7 @@ pipeline {
         AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         AWS_DEFAULT_REGION    = 'ap-south-1'
-        TF_WORKING_DIR        = "C:\\terraform_project"
-        TERRAFORM_PATH        = "C:\\Terraform\\terraform_1.10.5_windows_amd64 (2)\\terraform.exe"
+        TERRAFORM_PATH        = 'C:\\Users\\keert\\Downloads\\terraform_1.10.5_windows_amd64 (2)\\terraform.exe'
     }
 
     stages {
@@ -16,24 +15,22 @@ pipeline {
             }
         }
 
-        stage('Initialize Terraform') {
+        stage('Terraform Init') {
             steps {
-                script {
-                    bat """
-                        cd ${env.TF_WORKING_DIR}
-                        \"${env.TERRAFORM_PATH}\" init
-                    """
-                }
+                powershell "\"${env.TERRAFORM_PATH}\" init"
             }
         }
-    }
 
-    post {
-        success {
-            echo 'Pipeline execution completed successfully!'
+        stage('Terraform Plan') {
+            steps {
+                powershell "\"${env.TERRAFORM_PATH}\" plan"
+            }
         }
-        failure {
-            echo 'Pipeline execution failed. Check logs for errors.'
+
+        stage('Terraform Apply') {
+            steps {
+                powershell "\"${env.TERRAFORM_PATH}\" apply -auto-approve"
+            }
         }
     }
 }

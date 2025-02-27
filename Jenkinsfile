@@ -7,12 +7,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main', url: 'https://github.com/Keerthana-Bindhurani/Terraform-project.git'
-            }
-        }
-
         stage('Terraform Init') {
             steps {
                 withCredentials([
@@ -23,18 +17,7 @@ pipeline {
                         Set-ExecutionPolicy Bypass -Scope Process -Force
                         [System.Environment]::SetEnvironmentVariable("AWS_ACCESS_KEY_ID", "$env:AWS_ACCESS_KEY_ID", "Process")
                         [System.Environment]::SetEnvironmentVariable("AWS_SECRET_ACCESS_KEY", "$env:AWS_SECRET_ACCESS_KEY", "Process")
-                        & "$env:TERRAFORM_PATH" init -reconfigure
-                        if ($LASTEXITCODE -ne 0) { exit 1 }
-                    '''
-                }
-            }
-        }
-
-        stage('Terraform Validate') {
-            steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    powershell '''
-                        & "$env:TERRAFORM_PATH" validate
+                        & "$env:TERRAFORM_PATH" init
                         if ($LASTEXITCODE -ne 0) { exit 1 }
                     '''
                 }
@@ -47,14 +30,12 @@ pipeline {
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
-                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                        powershell '''
-                            [System.Environment]::SetEnvironmentVariable("AWS_ACCESS_KEY_ID", "$env:AWS_ACCESS_KEY_ID", "Process")
-                            [System.Environment]::SetEnvironmentVariable("AWS_SECRET_ACCESS_KEY", "$env:AWS_SECRET_ACCESS_KEY", "Process")
-                            & "$env:TERRAFORM_PATH" plan -out=tfplan
-                            if ($LASTEXITCODE -ne 0) { exit 1 }
-                        '''
-                    }
+                    powershell '''
+                        [System.Environment]::SetEnvironmentVariable("AWS_ACCESS_KEY_ID", "$env:AWS_ACCESS_KEY_ID", "Process")
+                        [System.Environment]::SetEnvironmentVariable("AWS_SECRET_ACCESS_KEY", "$env:AWS_SECRET_ACCESS_KEY", "Process")
+                        & "$env:TERRAFORM_PATH" plan
+                        if ($LASTEXITCODE -ne 0) { exit 1 }
+                    '''
                 }
             }
         }
@@ -65,16 +46,14 @@ pipeline {
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
-                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                        powershell '''
-                            [System.Environment]::SetEnvironmentVariable("AWS_ACCESS_KEY_ID", "$env:AWS_ACCESS_KEY_ID", "Process")
-                            [System.Environment]::SetEnvironmentVariable("AWS_SECRET_ACCESS_KEY", "$env:AWS_SECRET_ACCESS_KEY", "Process")
-                            & "$env:TERRAFORM_PATH" apply -auto-approve
-                            if ($LASTEXITCODE -ne 0) { exit 1 }
-                        '''
-                    }
+                    powershell '''
+                        [System.Environment]::SetEnvironmentVariable("AWS_ACCESS_KEY_ID", "$env:AWS_ACCESS_KEY_ID", "Process")
+                        [System.Environment]::SetEnvironmentVariable("AWS_SECRET_ACCESS_KEY", "$env:AWS_SECRET_ACCESS_KEY", "Process")
+                        & "$env:TERRAFORM_PATH" apply -auto-approve
+                        if ($LASTEXITCODE -ne 0) { exit 1 }
+                    '''
                 }
             }
         }
-    }
+    }  
 }

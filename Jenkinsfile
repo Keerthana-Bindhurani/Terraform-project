@@ -1,9 +1,13 @@
 pipeline {
     agent any
 
+    
     environment {
-        TF_WORKING_DIR = "C:\\terraform_project" // Adjust as needed
+        AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+        AWS_DEFAULT_REGION    = 'ap-south-1'
     }
+
 
     stages {
         stage('Checkout Code') {

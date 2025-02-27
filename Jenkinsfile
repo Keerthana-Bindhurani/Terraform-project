@@ -5,7 +5,8 @@ pipeline {
         AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         AWS_DEFAULT_REGION    = 'ap-south-1'
-        TF_WORKING_DIR = "C:\\terraform_project"
+        TF_WORKING_DIR        = "C:\\terraform_project"
+        TERRAFORM_PATH        = "C:\\Terraform\\terraform_1.10.5_windows_amd64 (2)\\terraform.exe"
     }
 
     stages {
@@ -18,8 +19,7 @@ pipeline {
         stage('Initialize Terraform') {
             steps {
                 script {
-                    // ✅ Use full path to cmd.exe
-                    bat '"C:\\Windows\\System32\\cmd.exe" /c powershell.exe -ExecutionPolicy Bypass -File init.ps1'
+                    bat "\"${TERRAFORM_PATH}\" init"
                 }
             }
         }

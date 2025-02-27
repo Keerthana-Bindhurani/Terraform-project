@@ -21,7 +21,9 @@ pipeline {
                 ]) {
                     powershell '''
                         Set-ExecutionPolicy Bypass -Scope Process -Force
-                        & "$env:TERRAFORM_PATH" init
+                        $env:AWS_ACCESS_KEY_ID = "$env:AWS_ACCESS_KEY_ID"
+                        $env:AWS_SECRET_ACCESS_KEY = "$env:AWS_SECRET_ACCESS_KEY"
+                        & "$env:TERRAFORM_PATH" init -reconfigure
                         if ($LASTEXITCODE -ne 0) { exit 1 }
                     '''
                 }
@@ -41,22 +43,36 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    powershell '''
-                        & "$env:TERRAFORM_PATH" plan -out=tfplan
-                        if ($LASTEXITCODE -ne 0) { exit 1 }
-                    '''
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                        powershell '''
+                            $env:AWS_ACCESS_KEY_ID = "$env:AWS_ACCESS_KEY_ID"
+                            $env:AWS_SECRET_ACCESS_KEY = "$env:AWS_SECRET_ACCESS_KEY"
+                            & "$env:TERRAFORM_PATH" plan -out=tfplan
+                            if ($LASTEXITCODE -ne 0) { exit 1 }
+                        '''
+                    }
                 }
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    powershell '''
-                        & "$env:TERRAFORM_PATH" apply -auto-approve tfplan
-                        if ($LASTEXITCODE -ne 0) { exit 1 }
-                    '''
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                        powershell '''
+                            $env:AWS_ACCESS_KEY_ID = "$env:AWS_ACCESS_KEY_ID"
+                            $env:AWS_SECRET_ACCESS_KEY = "$env:AWS_SECRET_ACCESS_KEY"
+                            & "$env:TERRAFORM_PATH" apply -auto-approve tfplan
+                            if ($LASTEXITCODE -ne 0) { exit 1 }
+                        '''
+                    }
                 }
             }
         }
